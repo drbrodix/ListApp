@@ -9,24 +9,87 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include "sqlite3.h"
 
-void readList(void);
-void writeList(void);
-void createList(void);
-void removeItem(void);
+void readList(sqlite3 *db);
+void writeList(sqlite3 *db);
+void removeItem(sqlite3 *db);
 void clrBuff(void);
+
+static int callback(void *data, int argc, char **argv, char **azColName)
+{
+    
+   for(int i = 0; i<argc; i++){
+      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+   }
+   
+   printf("\n");
+   return 0;
+}
 
 int main(int argc, char const *argv[])
 {
-    FILE *pList = fopen("list.txt", "r");
-    if(pList == NULL)
+    
+    //                          //
+    //   Connecting to the DB   //
+    //                          //
+    sqlite3 *db;
+    char *errMsg;
+    int rc = sqlite3_open("db.db", &db);
+    const char *createTable;
+    
+    //                                //
+    //   Handling failure if cannot   //
+    //        connect to the DB       //
+    //                                //
+    
+    if(rc != SQLITE_OK)
     {
-        createList();
+        fprintf(stderr, "Problem encountered while attempting to open the database: %s\n", sqlite3_errmsg(db));
+        return -1;
     }
+
+    //                                //
+    //   Reporting if connection to   //
+    //         DB is successful       //
+    //                                //
+
     else
     {
-        readList();
+        fprintf(stdout, "ALL GOOD, the DB has been successfully opened. \n");
     }
+
+    //                          //
+    //      Creating table      //
+    //                          //
+    
+    createTable = "CREATE TABLE IF NOT EXISTS itemList (itemID INTEGER PRIMARY KEY, itemDesc TEXT NOT NULL);";
+    
+    rc = sqlite3_exec(db, createTable, 0, 0, &errMsg);
+    
+    //                                //
+    //       Handling failure if      //
+    //      creating table failed     //
+    //                                //
+    
+    if(rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Problem encountered while attempting to create the list table: %s\n", errMsg);
+    }
+    
+    //                                //
+    //      Reporting if creating     //
+    //       table is successful      //
+    //                                //
+    
+    else
+    {
+        fprintf(stdout, "ALL GOOD, the table has been successfully created.");
+    }
+    
+    //                                //
+    // CLI menu for user interaction  //
+    //                                //
 
     bool flag = true;
 
@@ -41,15 +104,15 @@ int main(int argc, char const *argv[])
         switch (toupper(usrInput))
         {
         case 'A':
-            writeList();
+            writeList(db);
             break;
         
         case 'L':
-            readList();
+            readList(db);
             break;
 
         case 'R':
-            removeItem();
+            removeItem(db);
             break;
 
         case 'Q':
@@ -63,69 +126,60 @@ int main(int argc, char const *argv[])
         }
     }
 
+    sqlite3_close(db);
+
     return 0;
 }
 
-void readList(void)
+void readList(sqlite3 *db)
 {
-    FILE *pReadList = fopen("list.txt", "r");
-    printf("####################\n");
-    printf("\nID\tItem\n");
-    printf("--------------------\n");
-    int counter = 1;
-    char buff[255];
-    while(fgets(buff,255,pReadList) != NULL)
+    char *sqlQuery = "SELECT * FROM itemList;";
+    char *errMsg;
+    
+    int rc = sqlite3_exec(db, sqlQuery, callback, 0, &errMsg);
+    
+    if(rc != SQLITE_OK)
     {
-        printf("%d)\t %s", counter, buff);
-        counter++;
+        fprintf(stderr, "Problem encountered while attempting to query data: %s\n", errMsg);
     }
-    printf("\n####################\n");
-    fclose(pReadList);
 }
 
-void writeList(void)
+void writeList(sqlite3 *db)
 {
-    FILE *pWriteList = fopen("list.txt", "a");
     printf("Please enter what should be added to the list:\n");
     char usrInputToWrite[255];
-    fgets(usrInputToWrite, 255, stdin);
-    fputs(usrInputToWrite, pWriteList);
-    fclose(pWriteList);
+    char *errMsg;
+    char *sqlQuery = NULL;
+    fgets(usrInputToWrite, sizeof(usrInputToWrite), stdin);
+    
+    asprintf(&sqlQuery, "INSERT INTO itemList (itemID, itemDesc) VALUES (NULL, '%s');", usrInputToWrite);
+    
+    int rc = sqlite3_exec(db, sqlQuery, 0, 0, &errMsg);
+    
+    if(rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Problem encountered while attempting to add data to the list: %s\n", errMsg);
+    }
 }
 
-void createList(void)
+void removeItem(sqlite3 *db)
 {
-    FILE *pCreateList = fopen("list.txt", "w");
-    fputs("", pCreateList);
-    fclose(pCreateList);
-}
-
-void removeItem(void)
-{
-    FILE *pReadList = fopen("list.txt", "r");
     printf("Please enter the ID of the item that should be removed from the list:\n");
     int itemID;
     scanf("%d", &itemID);
     clrBuff();
-    FILE *pTempList = fopen("tempList.txt", "w");
-    int nrOfLines = 0;
-    pReadList = fopen("list.txt", "r");
-    char buff[255];
-    while(fgets(buff, 255, pReadList) != NULL)
+
+    char *errMsg;
+    char *sqlDelete = NULL;
+    
+    asprintf(&sqlDelete, "DELETE FROM itemList WHERE itemID = %d;", itemID);
+    
+    int rc = sqlite3_exec(db, sqlDelete, 0, 0, &errMsg);
+    
+    if(rc != SQLITE_OK)
     {
-        nrOfLines++;
-        if(nrOfLines == itemID)
-        {
-            continue;
-        } else
-        {
-            fputs(buff, pTempList);
-        }
+        fprintf(stderr, "Problem encountered while attempting to remove data from the list: %s\n", errMsg);
     }
-    fclose(pReadList);
-    fclose(pTempList);
-    remove("list.txt");
-    rename("tempList.txt", "list.txt");
 }
 
 void clrBuff(void)
