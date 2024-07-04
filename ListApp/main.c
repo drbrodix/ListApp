@@ -83,7 +83,7 @@ int main(int argc, char const *argv[])
     
     else
     {
-        fprintf(stdout, "ALL GOOD, the table has been successfully created.");
+        fprintf(stdout, "ALL GOOD, the table has been successfully opened. \n\n");
     }
     
     //                                //
@@ -94,7 +94,7 @@ int main(int argc, char const *argv[])
 
     while(flag)
     {
-        printf("What would you like to do?\nEnter 'A' to add a new item, 'L' to list the items, 'R' to remove an item from the list, or 'Q' to quit the program:\n");
+        printf("What would you like to do?\nEnter 'A' to add a new item, 'L' to list the items,\n'R' to remove an item from the list, or 'Q' to quit the program:\n");
 
         char usrInput = getc(stdin);
 
