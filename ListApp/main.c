@@ -18,13 +18,12 @@ void clrBuff(void);
 
 static int callback(void *data, int argc, char **argv, char **azColName)
 {
-    
-   for(int i = 0; i<argc; i++){
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-   }
+    for(int i = 0; i<argc; i++){
+        printf("%s \t", argv[i] ? argv[i] : "NULL");
+    }
    
-   printf("\n");
-   return 0;
+    printf("\n");
+    return 0;
 }
 
 int main(int argc, char const *argv[])
@@ -117,7 +116,7 @@ int main(int argc, char const *argv[])
 
         case 'Q':
             flag = false;
-            printf("See ya");
+            printf("See ya\n");
             break;
         
         default:
@@ -136,12 +135,17 @@ void readList(sqlite3 *db)
     char *sqlQuery = "SELECT * FROM itemList;";
     char *errMsg;
     
+    fprintf(stdout, "###############\n");
+    fprintf(stdout, "\nID \t Description\n");
+    fprintf(stdout, "---------------\n");
+    
     int rc = sqlite3_exec(db, sqlQuery, callback, 0, &errMsg);
     
     if(rc != SQLITE_OK)
     {
         fprintf(stderr, "Problem encountered while attempting to query data: %s\n", errMsg);
     }
+    fprintf(stdout, "###############\n");
 }
 
 void writeList(sqlite3 *db)
