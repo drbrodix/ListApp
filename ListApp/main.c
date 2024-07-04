@@ -1,10 +1,3 @@
-//
-//  main.c
-//  ListApp
-//
-//  Created by Adam Rigely on 02.07.24.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -30,17 +23,17 @@ int main(int argc, char const *argv[])
 {
     
     //                          //
-    //   Connecting to the DB   //
+    //   CONNECTING TO THE DB   //
     //                          //
     sqlite3 *db;
     char *errMsg;
     int rc = sqlite3_open("db.db", &db);
     const char *createTable;
     
-    //                                //
-    //   Handling failure if cannot   //
-    //        connect to the DB       //
-    //                                //
+    //                             //
+    //   REPORTING IF CONNECTION   //
+    //       TO THE DB FAILED      //
+    //                             //
     
     if(rc != SQLITE_OK)
     {
@@ -49,8 +42,8 @@ int main(int argc, char const *argv[])
     }
 
     //                                //
-    //   Reporting if connection to   //
-    //         DB is successful       //
+    //   REPORTING IF CONNECTION TO   //
+    //         DB IS SUCCESSFUL       //
     //                                //
 
     else
@@ -59,7 +52,7 @@ int main(int argc, char const *argv[])
     }
 
     //                          //
-    //      Creating table      //
+    //      CREATING TABLE      //
     //                          //
     
     createTable = "CREATE TABLE IF NOT EXISTS itemList (itemID INTEGER PRIMARY KEY, itemDesc TEXT NOT NULL);";
@@ -67,8 +60,8 @@ int main(int argc, char const *argv[])
     rc = sqlite3_exec(db, createTable, 0, 0, &errMsg);
     
     //                                //
-    //       Handling failure if      //
-    //      creating table failed     //
+    //      REPORTING IF OPENING      //
+    //          TABLE FAILED          //
     //                                //
     
     if(rc != SQLITE_OK)
@@ -77,8 +70,8 @@ int main(int argc, char const *argv[])
     }
     
     //                                //
-    //      Reporting if creating     //
-    //       table is successful      //
+    //      REPORTING IF CREATING     //
+    //       TABLE IS SUCCESSFUL      //
     //                                //
     
     else
@@ -86,9 +79,10 @@ int main(int argc, char const *argv[])
         fprintf(stdout, "ALL GOOD, the table has been successfully opened. \n\n");
     }
     
-    //                                //
-    // CLI menu for user interaction  //
-    //                                //
+    //                        //
+    //      CLI MENU FOR      //
+    //    USER INTERACTION    //
+    //                        //
 
     bool flag = true;
 
@@ -129,6 +123,10 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
+
+//                                //
+//       FUNCTIONS SECTION        //
+//                                //
 
 void readList(sqlite3 *db)
 {
