@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
     //      CREATING TABLE      //
     //                          //
     
-    createTable = "CREATE TABLE IF NOT EXISTS itemList (itemID INTEGER PRIMARY KEY, itemDesc TEXT NOT NULL);";
+    createTable = "CREATE TABLE IF NOT EXISTS itemList (itemID INTEGER PRIMARY KEY, itemDesc TEXT NOT NULL, itemTime TEXT NOT NULL);";
     
     rc = sqlite3_exec(db, createTable, 0, 0, &errMsg);
     
@@ -133,9 +133,9 @@ void readList(sqlite3 *db)
     char *sqlQuery = "SELECT * FROM itemList;";
     char *errMsg;
     
-    fprintf(stdout, "###############\n");
-    fprintf(stdout, "\nID \t Description\n");
-    fprintf(stdout, "---------------\n");
+    fprintf(stdout, "##############################\n");
+    fprintf(stdout, "\nID \t Description \t Creation Time\n");
+    fprintf(stdout, "---------------------------------------------\n");
     
     int rc = sqlite3_exec(db, sqlQuery, callback, 0, &errMsg);
     
@@ -143,7 +143,7 @@ void readList(sqlite3 *db)
     {
         fprintf(stderr, "Problem encountered while attempting to query data: %s\n", errMsg);
     }
-    fprintf(stdout, "###############\n");
+    fprintf(stdout, "##############################\n");
 }
 
 void writeList(sqlite3 *db)
@@ -153,8 +153,16 @@ void writeList(sqlite3 *db)
     char *errMsg;
     char *sqlQuery = NULL;
     fgets(usrInputToWrite, sizeof(usrInputToWrite), stdin);
+    for(int i = 0; sizeof(usrInputToWrite)/sizeof(usrInputToWrite[0]); i++)
+    {
+        if(usrInputToWrite[i] == '\n')
+        {
+            usrInputToWrite[i] = '\0';
+            break;
+        }
+    }
     
-    asprintf(&sqlQuery, "INSERT INTO itemList (itemID, itemDesc) VALUES (NULL, '%s');", usrInputToWrite);
+    asprintf(&sqlQuery, "INSERT INTO itemList (itemID, itemDesc, itemTime) VALUES (NULL, '%s', DATETIME('NOW', 'localtime'));", usrInputToWrite);
     
     int rc = sqlite3_exec(db, sqlQuery, 0, 0, &errMsg);
     
